@@ -5,26 +5,29 @@
     <title>不NG</title>
     <link rel="stylesheet" href="src/common/reset.css">
     <link rel="stylesheet" href="src/common/index.css">
+    <link rel="stylesheet" href="src/common/style.css">
     <script src="vue.js"></script>
 </head>
 <body>
-<header id="header">
-    <ng-title title="不NG"></ng-title>
+<header class="ng-title">
+    <div class="ng-title-word">不NG</div>
+    <div class="ng-title-line"></div>
 </header>
 <div id="app">
-    <ng-sub-title title="单词卡" more="true"></ng-sub-title>
+    <ng-sub-header title="单词卡" more="true"></ng-sub-header>
     <item-card title="Design" tip="创建时间: 17/7/27"></item-card>
-    <ng-sub-title title="单词本"></ng-sub-title>
+    <ng-sub-header title="单词本"></ng-sub-header>
     <item-card title="词根" tip="卡片量: 20张"></item-card>
     <item-card title="托福" tip="卡片量: 60张"></item-card>
+</div>
+<div id="recite" style="display: none;opacity: 0;">
+    <cards></cards>
 </div>
 <div id="fab">
     <fab></fab>
 </div>
 
-<script src="src/components/header/header.js"></script>
-<script src="src/components/sub-header/sub-header.js"></script>
-<script src="src/components/item-card/item-card.js"></script>
-<script src="src/components/fab/fab.js"></script>
+<script src="src/components/app/app.js"></script>
+<script src="src/components/recite/recite.js"></script>
 </body>
 </html>

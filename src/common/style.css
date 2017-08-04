@@ -1,0 +1,38 @@
+@font-face {
+  font-family: 'no-ng';
+  src:  url('../fonts/no-ng.eot?1eguf1');
+  src:  url('../fonts/no-ng.eot?1eguf1#iefix') format('embedded-opentype'),
+    url('../fonts/no-ng.ttf?1eguf1') format('truetype'),
+    url('../fonts/no-ng.woff?1eguf1') format('woff'),
+    url('../fonts/no-ng.svg?1eguf1#no-ng') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'no-ng' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-swap_vert:before {
+  content: "\e900";
+}
+.icon-swap_horiz:before {
+  content: "\e901";
+}
+.icon-quill:before {
+  content: "\e907";
+}
+.icon-bin2:before {
+  content: "\e9ad";
+}
