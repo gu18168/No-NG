@@ -152,18 +152,168 @@ var recite = {
     '</div></transition>'
 }
 
-var cards = {
+var slide= {
+    props: {
+        sliderinit: {
+            default: {}
+        }
+    },
     data() {
         return {
+            basicdata: {
+                posWidth: '0',
+                posheight: '0',
+                start: {},
+                end: {},
+                tracking: false,
+                animation: false,
+                containerClass: {
+                    'swiper-container-vertical': false
+                },
+                transitionEnding: false
+            },
+            currentWidth: 0,
             infoContent: false,
             moreContent: false,
-            contentHover: true
+            pages: [
+                {
+                    'en': "-able",
+                    'zh': "表能力的词缀"
+                },
+                {
+                    'en': "-ion",
+                    'zh': "名词词缀"
+                },
+                {
+                    'en': "sign-",
+                    'zh': "表信号"
+                }
+            ]
+        }
+    },
+    computed: {
+        styleobj() {
+            let style = {};
+            style['transform'] = 'translate3D(' + this.basicdata.posWidth + ',' + this.basicdata.posheight + ',0)';
+            style['transition-timing-function'] = 'ease';
+            style['transition-duration'] = (this.basicdata.animation ? this.sliderinit.slideSpeed || 300 : 0) + 'ms'
+            return style;
+        },
+        pagenums() {
+            return this.pages.length;
         }
     },
     created() {
-        // @todo 请求相应的单词卡
+        // @todo 从数据库获取数据至pages
+    },
+    mounted() {
+        let that = this;
+        that.slide(0, 'animationnone');
     },
     methods: {
+        swipeStart(e) {
+            let that = this;
+            if (this.basicdata.transitionEnding) {
+                return
+            }
+            this.basicdata.animation = false;
+            document.addEventListener('touchmove', that.preventDefault(e))
+            if (e.type === 'touchstart') {
+                if (e.touches.length > 1) {
+                    this.basicdata.tracking = false;
+                    return;
+                } else {
+                    this.basicdata.tracking = true;
+                    this.basicdata.start.t = new Date().getTime();
+                    this.basicdata.start.x = e.targetTouches[0].clientX;
+                    this.basicdata.start.y = e.targetTouches[0].clientY;
+                    this.basicdata.end.x = e.targetTouches[0].clientX;
+                    this.basicdata.end.y = e.targetTouches[0].clientY;
+                }
+            } else {
+                this.basicdata.tracking = true;
+                this.basicdata.start.t = new Date().getTime();
+                this.basicdata.start.x = e.clientX;
+                this.basicdata.start.y = e.clientY;
+                this.basicdata.end.x = e.clientX;
+                this.basicdata.end.y = e.clientY;
+            }
+        },
+        swipeMove(e) {
+            if (this.basicdata.tracking) {
+                if (e.type === 'touchmove') {
+                    e.preventDefault();
+                    this.basicdata.end.x = e.targetTouches[0].clientX;
+                    this.basicdata.end.y = e.targetTouches[0].clientY;
+                } else {
+                    e.preventDefault();
+                    this.basicdata.end.x = e.clientX;
+                    this.basicdata.end.y = e.clientY;
+                }
+                this.basicdata.posWidth = -(this.currentWidth) + this.basicdata.end.x - this.basicdata.start.x + 'px';
+            }
+        },
+        swipeEnd(e) {
+            this.basicdata.tracking = false;
+            let now = new Date().getTime();
+            let deltaTime = now - this.basicdata.start.t;
+            let deltaX = this.basicdata.end.x - this.basicdata.start.x;
+            let deltaY = this.basicdata.end.y - this.basicdata.start.y;
+            document.removeEventListener('touchmove', this.preventDefault(e));
+            if (deltaTime > this.sliderinit.thresholdTime) {
+                this.slide(this.sliderinit.currentPage);
+            } else {
+                if ((deltaX > this.sliderinit.thresholdDistance) && (Math.abs(deltaY) < this.sliderinit.thresholdDistance)) {
+                    this.pre();
+                    return;
+                } else if ((-deltaX > this.sliderinit.thresholdDistance) && (Math.abs(deltaY) < this.sliderinit.thresholdDistance)) {
+                    this.next();
+                    return;
+                } else {
+                    this.slide(this.sliderinit.currentPage);
+                    return;
+                }
+            }
+        },
+        pre() {
+            if (this.sliderinit.currentPage >= 1) {
+                this.sliderinit.currentPage -=  1;
+                this.slide();
+            } else {
+                this.slide();
+            }
+        },
+        next() {
+            if (this.sliderinit.currentPage < this.pagenums - 1) {
+                this.sliderinit.currentPage += 1;
+                this.slide();
+            } else {
+                // @todo 到底请求下10个
+                this.slide();
+            }
+        },
+        slide(pagenum, type) {
+            let that = this;
+            that.basicdata.animation = true;
+            if (type === 'animationnone') {
+                that.basicdata.animation = false;
+            }
+            if (pagenum || pagenum === 0) {
+                that.sliderinit.currentPage = pagenum;
+            }
+
+            let $sliderChildren = document.getElementsByClassName('slider-item');
+            let offsetLeft = $sliderChildren[that.sliderinit.currentPage].offsetLeft;
+            that.currentWidth = offsetLeft;
+            that.basicdata.posWidth = -that.currentWidth + 'px';
+
+            if (that.sliderinit.currentPage < 0 || that.sliderinit.currentPage >= that.pagenums) {
+                return;
+            }
+        },
+        preventDefault(e) {
+            e.preventDefault();
+        },
         showInfo() {
             this.infoContent = true;
         },
@@ -176,43 +326,58 @@ var cards = {
         hideMore() {
             this.moreContent = false;
         },
-        flip() {
+        flip(index) {
             this.infoContent = false;
             this.moreContent = false;
             //@todo 翻转动画
-            this.contentHover = !this.contentHover;
+            let card = document.getElementsByClassName('card-main')[index];
+            if (card.className.match(new RegExp('(\\s|^)' + 'back' + '(\\s|$)'))) {
+                let reg = new RegExp('(\\s|^)' + 'back' + '(\\s|$)');
+                card.className = card.className.replace(reg, '');
+            } else {
+                card.className += " back";
+            }
         }
     },
-    template: '<div class="card-wrapper">' +
-    '<div class="card-main" :class="{back: contentHover}">' +
-    '<div class="card-header">' +
-    '<div class="card-info" @click="showInfo">i</div>' +
-    '<div class="card-more" @click="showMore">·<span>·</span>·</div>' +
-    '</div>' +
-    '<div class="card-content" @click="flip">' +
-    '<div class="content-front">表能力的一个词缀</div>' +
-    '<div class="content-back">-able</div>' +
-    '</div>' +
-    '<transition name="slide-right"><div class="card-info-content btn-content" v-if="infoContent" @click="hideInfo">' +
-    '<p class="icon-swap_vert"> 点击翻转</p>' +
-    '<p class="icon-swap_horiz"> 左右滑动</p>' +
-    '</div></transition>' +
-    '<transition name="slide-left"><div class="card-more-content btn-content" v-if="moreContent" @click="hideMore">' +
-    '<p class="icon-quill"> 编辑</p>' +
-    '<p class="icon-bin2"> 删除</p>' +
-    '</div></transition>' +
-    '</div>' +
-    '<div class="line c-line"></div>' +
-    '<div class="line d-line"></div>' +
-    '<div class="card-tags">' +
-    '<ul>' +
-    '<li class="card-tag tag-blue">词缀</li>' +
-    '<li class="card-tag">词缀</li>' +
-    '<li class="card-tag tag-red">词缀</li>' +
-    '<li class="card-tag tag-green">词缀</li>' +
-    '<li class="card-tag tag-yellow">词缀</li>' +
-    '<li class="card-tag tag-black">词缀</li>' +
-    '</ul>' +
+    template: '<div class="slider-container" :class="basicdata.containerClass">' +
+    '<div class="slider-wrapper" :style="styleobj"' +
+        '@touchmove="swipeMove" @touchstart="swipeStart" @touchend="swipeEnd" ' +
+        '@mousedown="swipeStart" @mouseup="swipeEnd" @mousemove="swipeMove">' +
+        '<div class="slider-item" :style="item.style" v-for="(item,index) in pages">' +
+            '<div class="card-wrapper">' +
+            '<div class="card-main">' +
+            '<div class="card-header">' +
+            '<div class="card-info" @click="showInfo">i</div>' +
+            '<div class="card-more" @click="showMore">·<span>·</span>·</div>' +
+            '</div>' +
+            '<div class="card-content" @click="flip(index)">' +
+            '<div class="content-front">{{item.en}}</div>' +
+            '<div class="content-back">{{item.zh}}</div>' +
+            '</div>' +
+            '<transition name="slide-right"><div class="card-info-content btn-content" v-if="infoContent" @click="hideInfo">' +
+            '<p class="icon-swap_vert"> 点击翻转</p>' +
+            '<p class="icon-swap_horiz"> 左右滑动</p>' +
+            '</div></transition>' +
+            '<transition name="slide-left"><div class="card-more-content btn-content" v-if="moreContent" @click="hideMore">' +
+            '<p class="icon-quill"> 编辑</p>' +
+            '<p class="icon-bin2"> 删除</p>' +
+            '</div></transition>' +
+            '</div>' +
+            '<div class="line c-line"></div>' +
+            '<div class="line d-line"></div>' +
+            '<div class="card-tags">' +
+            '<ul>' +
+            '<li class="card-tag tag-blue">词缀</li>' +
+            '<li class="card-tag">词缀</li>' +
+            '<li class="card-tag tag-red">词缀</li>' +
+            '<li class="card-tag tag-green">词缀</li>' +
+            '<li class="card-tag tag-yellow">词缀</li>' +
+            '<li class="card-tag tag-black">词缀</li>' +
+            '</ul>' +
+            '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="card-another">再来一打<</div>' +
     '</div>' +
     '</div>'
 }
@@ -221,7 +386,7 @@ var Container = new Vue({
     el: '#main',
     components: {
         'recite': recite,
-        'cards': cards
+        'slider': slide
     }
 })
 

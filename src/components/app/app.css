@@ -111,3 +111,47 @@
 .fade-enter, .fade-leave-to {
     opacity: 0;
 }
+
+.slider-container {
+    margin: 0 auto;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+.slider-container {
+    height: 100%;
+    width: 100%;
+    position: relative;
+}
+
+.slider-wrapper {
+    box-sizing: content-box;
+    display: flex;
+    height: 100%;
+    position: relative;
+    transition-property: transform;
+    width: 100%;
+    z-index: 1;
+}
+
+.slider-item {
+    flex-shrink: 0;
+    height: 100%;
+    position: relative;
+    width: 100%;
+}
+
+.slider-item {
+    align-items: center;
+    background: #f7f7f7 none repeat scroll 0 0;
+    display: flex;
+    font-size: 40px;
+    justify-content: center;
+    text-align: center;
+}
+
+.slider-item {
+    background-position: center center !important;
+    background-size: cover !important;
+}
