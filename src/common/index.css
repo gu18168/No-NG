@@ -40,7 +40,15 @@ body {
     top: 2.3rem;
     bottom: 0;
     background-color: #f7f7f7;
-    transition: opacity .6s;
+}
+
+#addCard {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 2.3rem;
+    bottom: 0;
+    background-color: #f7f7f7;
 }
 
 #fab {

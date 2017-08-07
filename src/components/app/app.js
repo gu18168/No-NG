@@ -60,7 +60,7 @@ var subHeader = {
     '</div>'
 }
 
-var app = new Vue({
+var App = new Vue({
     el: '#app',
     components: {
         'item-card': item,
@@ -98,8 +98,9 @@ var fab = {
             this.isActive = false;
         },
         addCard() {
-            // @todo 跳转添加卡片页面
-            console.log('添加卡片')
+            document.getElementsByClassName("ng-title-word")[0].innerHTML = '添加卡片';
+            bus.$emit('addCard');
+            bus.$emit('addToBack');
         },
         addBook() {
             // @todo 跳转添加本页面
@@ -109,6 +110,7 @@ var fab = {
             document.getElementsByClassName("ng-title-word")[0].innerHTML = '不NG';
             bus.$emit('backToAdd');
             bus.$emit('noRecite');
+            bus.$emit('noAddCard');
         }
     },
     template: '<div class="fab">' +
@@ -390,11 +392,75 @@ var slide= {
     '</div>'
 }
 
-var Container = new Vue({
+var Main = new Vue({
     el: '#main',
     components: {
         'recite': recite,
         'slider': slide
+    }
+})
+
+var addCard = {
+    data() {
+        return {
+            toAddCard: false,
+            isSelectBook: false,
+            isSelectTag: false,
+        }
+    },
+    mounted() {
+        bus.$on('addCard', () => {
+            this.toAddCard = true;
+        });
+
+        bus.$on('noAddCard', ()=> {
+            this.toAddCard = false;
+        })
+    },
+    methods: {
+        selectBook() {
+            this.isSelectBook = true;
+            //@todo 请求已有的单词本数据
+        },
+        selectTag() {
+            this.isSelectTag = true;
+            //@todo 请求热门标签数据
+        },
+        cancel() {
+            this.isSelectBook = false;
+            this.isSelectTag = false;
+        }
+    },
+    template: '<transition name="fade"><div id="addCard" v-if="toAddCard">' +
+    '<div class="addCard-container" :class="{hide: isSelectBook || isSelectTag}">' +
+        '<form>' +
+            '<input placeholder="English">' +
+            '<input placeholder="Chinese">' +
+            '<label @click="selectBook">选择收纳的单词本 ></label>' +
+            '<label @click="selectTag">添加标签 ></label>' +
+            '<button type="submit">创建 ></button>' +
+        '</form>' +
+    '</div>' +
+    '<transition name="slide-into"><div class="select-container" v-if="isSelectBook">' +
+        '<form>' +
+            '<label @click="cancel">取消</label>' +
+        '</form>' +
+    '</div></transition>' +
+    '<transition name="slide-into"><div class="select-container" v-if="isSelectTag">' +
+        '<form>' +
+            '<label @click="cancel">取消</label>' +
+        '</form>' +
+    '</div></transition>' +
+    '</div></transition>'
+}
+
+var addBook = {}
+
+var Set = new Vue({
+    el: '#set',
+    components: {
+        'add-card': addCard,
+        'add-book': addBook
     }
 })
 
