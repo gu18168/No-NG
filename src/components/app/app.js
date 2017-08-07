@@ -188,7 +188,12 @@ var slide= {
                     'en': "sign-",
                     'zh': "表信号"
                 }
-            ]
+            ],
+            pageper(index) {
+                let style = {};
+                style['width'] = (index+1) * 100 / this.pages.length + '%';
+                return style;
+            }
         }
     },
     computed: {
@@ -340,6 +345,9 @@ var slide= {
         }
     },
     template: '<div class="slider-container" :class="basicdata.containerClass">' +
+    '<div class="slider-pagination">' +
+    '<ins :style="pageper(sliderinit.currentPage)"></ins>' +
+    '</div>' +
     '<div class="slider-wrapper" :style="styleobj"' +
         '@touchmove="swipeMove" @touchstart="swipeStart" @touchend="swipeEnd" ' +
         '@mousedown="swipeStart" @mouseup="swipeEnd" @mousemove="swipeMove">' +
