@@ -175,6 +175,7 @@ var slide= {
                 transitionEnding: false
             },
             currentWidth: 0,
+            selectedIndex: 0,
             infoContent: false,
             moreContent: false,
             pages: [
@@ -220,6 +221,7 @@ var slide= {
     methods: {
         swipeStart(e) {
             let that = this;
+            that.hideAll();
             if (this.basicdata.transitionEnding) {
                 return
             }
@@ -276,6 +278,8 @@ var slide= {
                 } else if ((-deltaX > this.sliderinit.thresholdDistance) && (Math.abs(deltaY) < this.sliderinit.thresholdDistance)) {
                     this.next();
                     return;
+                } else if (Math.abs(deltaX) < 5) {
+                    this.flip();
                 } else {
                     this.slide(this.sliderinit.currentPage);
                     return;
@@ -285,6 +289,7 @@ var slide= {
         pre() {
             if (this.sliderinit.currentPage >= 1) {
                 this.sliderinit.currentPage -=  1;
+                this.selectedIndex -= 1;
                 this.slide();
             } else {
                 this.slide();
@@ -293,6 +298,7 @@ var slide= {
         next() {
             if (this.sliderinit.currentPage < this.pagenums - 1) {
                 this.sliderinit.currentPage += 1;
+                this.selectedIndex += 1;
                 this.slide();
             } else {
                 // @todo 到底请求下10个
@@ -333,11 +339,13 @@ var slide= {
         hideMore() {
             this.moreContent = false;
         },
-        flip(index) {
+        hideAll() {
             this.infoContent = false;
             this.moreContent = false;
-            //@todo 翻转动画
-            let card = document.getElementsByClassName('card-main')[index];
+        },
+        flip() {
+            this.hideAll();
+            let card = document.getElementsByClassName('card-main')[this.selectedIndex];
             if (card.className.match(new RegExp('(\\s|^)' + 'back' + '(\\s|$)'))) {
                 let reg = new RegExp('(\\s|^)' + 'back' + '(\\s|$)');
                 card.className = card.className.replace(reg, '');
@@ -350,9 +358,7 @@ var slide= {
     '<div class="slider-pagination">' +
     '<ins :style="pageper(sliderinit.currentPage)"></ins>' +
     '</div>' +
-    '<div class="slider-wrapper" :style="styleobj"' +
-        '@touchmove="swipeMove" @touchstart="swipeStart" @touchend="swipeEnd" ' +
-        '@mousedown="swipeStart" @mouseup="swipeEnd" @mousemove="swipeMove">' +
+    '<div class="slider-wrapper" :style="styleobj">' +
         '<div class="slider-item" :style="item.style" v-for="(item,index) in pages">' +
             '<div class="card-wrapper">' +
             '<div class="card-main">' +
@@ -360,7 +366,7 @@ var slide= {
             '<div class="card-info" @click="showInfo">i</div>' +
             '<div class="card-more" @click="showMore">·<span>·</span>·</div>' +
             '</div>' +
-            '<div class="card-content" @click="flip(index)">' +
+            '<div class="card-content" @touchmove="swipeMove" @touchstart="swipeStart" @touchend="swipeEnd" @mousedown="swipeStart" @mouseup="swipeEnd" @mousemove="swipeMove">' +
             '<div class="content-front">{{item.en}}</div>' +
             '<div class="content-back">{{item.zh}}</div>' +
             '</div>' +
@@ -382,7 +388,7 @@ var slide= {
             '<li class="card-tag tag-red">词缀</li>' +
             '<li class="card-tag tag-green">词缀</li>' +
             '<li class="card-tag tag-yellow">词缀</li>' +
-            '<li class="card-tag tag-black">词缀</li>' +
+            '<li class="card-tag tag-black">词缀啊</li>' +
             '</ul>' +
             '</div>' +
             '</div>' +
