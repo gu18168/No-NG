@@ -180,16 +180,8 @@ var slide= {
             moreContent: false,
             pages: [
                 {
-                    'en': "-able",
-                    'zh': "表能力的词缀"
-                },
-                {
-                    'en': "-ion",
-                    'zh': "名词词缀"
-                },
-                {
-                    'en': "sign-",
-                    'zh': "表信号"
+                    'en': "loading",
+                    'zh': "加载中"
                 }
             ],
             pageper(index) {
@@ -213,6 +205,24 @@ var slide= {
     },
     created() {
         // @todo 从数据库获取数据至pages
+        let that = this;
+        let xmlHttp = new XMLHttpRequest();
+        let url = "http://101.200.60.114:8765/get";
+        xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState == 4) {
+                if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
+                    console.log(xmlHttp.responseText);
+                    let temp = eval("(" + xmlHttp.responseText +")")
+                    console.log(temp.res);
+                    that.pages = temp.res;
+                    // console.log(that.pages)
+                } else {
+
+                }
+            }
+        }
+        xmlHttp.open("GET", url, true);
+        xmlHttp.send(null);
     },
     mounted() {
         let that = this;
