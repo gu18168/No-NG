@@ -6,6 +6,12 @@ function loadStyles(url) {
     document.getElementsByTagName("head")[0].appendChild(link);
 }
 
+function addURLParam(url, name, value) {
+    url += (url.indexOf("?") == -1 ? "?" : "&");
+    url += encodeURIComponent(name) + "=" + encodeURIComponent(value);
+    return url;
+}
+
 (function () {
     loadStyles("src/components/app/app.css")
     loadStyles("src/components/recite/recite.css")
@@ -18,8 +24,36 @@ var item = {
         title: {
             default: '小标题'
         },
-        tip: {
-            default: '提示'
+        type: {
+            default: 'card'
+        }
+    },
+    data() {
+        return {
+            tip: "卡片量: "
+        }
+    },
+    created() {
+        if (this.type == "card") {
+            let that = this;
+            let xmlHttp = new XMLHttpRequest();
+            let url = "http://101.200.60.114:8765/sum";
+            url = addURLParam(url, "book", this.title);
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4) {
+                    if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
+                        let temp = eval("(" + xmlHttp.responseText +")")
+                        console.log(temp.res);
+                        that.tip += temp.res + "张";
+                    } else {
+                        that.tip += "未知错误";
+                    }
+                }
+            }
+            xmlHttp.open("GET", url, true);
+            xmlHttp.send(null);
+        } else {
+            this.tip = "创建时间: 2017/8/15"
         }
     },
     methods: {
@@ -99,7 +133,11 @@ var fab = {
         },
         addCard() {
             document.getElementsByClassName("ng-title-word")[0].innerHTML = '添加卡片';
-            bus.$emit('addCard');
+            document.getElementById("app").style.opacity = "0";
+            setTimeout(function () {
+                document.getElementById("app").style.display = "none";
+                bus.$emit('addCard');
+            }, 300);
             bus.$emit('addToBack');
         },
         addBook() {
@@ -108,6 +146,12 @@ var fab = {
         },
         prevTo() {
             document.getElementsByClassName("ng-title-word")[0].innerHTML = '不NG';
+            setTimeout(function () {
+                document.getElementById("app").style.display = "block";
+            }, 350);
+            setTimeout(function () {
+                document.getElementById("app").style.opacity = "1";
+            }, 400);
             bus.$emit('backToAdd');
             bus.$emit('noRecite');
             bus.$emit('noAddCard');
@@ -210,7 +254,7 @@ var slide= {
         let that = this;
         let xmlHttp = new XMLHttpRequest();
         let url = "http://101.200.60.114:8765/get";
-        url = this.addURLParam(url, "book", title);
+        url = addURLParam(url, "book", title);
         xmlHttp.onreadystatechange = function () {
             if (xmlHttp.readyState == 4) {
                 if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
@@ -243,11 +287,6 @@ var slide= {
         that.slide(0, 'animationnone');
     },
     methods: {
-        addURLParam(url, name, value) {
-          url += (url.indexOf("?") == -1 ? "?" : "&");
-          url += encodeURIComponent(name) + "=" + encodeURIComponent(value);
-          return url;
-        },
         swipeStart(e) {
             let that = this;
             that.hideAll();
@@ -441,6 +480,11 @@ var addCard = {
             toAddCard: false,
             isSelectBook: false,
             isSelectTag: false,
+            books: ["词根", "托福"],
+            tags: ["词缀", "词缀啊"],
+            selectedBooks: [],
+            selectedTags: [],
+            createdTags: [],
         }
     },
     mounted() {
@@ -450,41 +494,63 @@ var addCard = {
 
         bus.$on('noAddCard', ()=> {
             this.toAddCard = false;
+            // this.books = []; 清空等待下一次刷新
+            this.selectedBooks = [];
+            this.isSelectBook = this.isSelectTag = false;
         })
     },
     methods: {
         selectBook() {
             this.isSelectBook = true;
-            //@todo 请求已有的单词本数据
+            if (this.books.length == 0) {
+                //@todo 请求已有的单词本数据
+            }
         },
         selectTag() {
             this.isSelectTag = true;
-            //@todo 请求热门标签数据
+            if (this.tags.length == 0) {
+                //@todo 请求热门标签数据
+            }
         },
         cancel() {
             this.isSelectBook = false;
             this.isSelectTag = false;
+        },
+        addTag() {
+            let tagName = document.getElementById("tag-input").value;
+            document.getElementById("tag-input").value = "";
+            this.createdTags.push(tagName);
+            console.log(tagName);
+        },
+        submit() {
+            //@todo 提交数据
         }
     },
     template: '<transition name="fade"><div id="addCard" v-if="toAddCard">' +
     '<div class="addCard-container" :class="{hide: isSelectBook || isSelectTag}">' +
-        '<form>' +
+        '<div class="form">' +
             '<input placeholder="English">' +
             '<input placeholder="Chinese">' +
             '<label @click="selectBook">选择收纳的单词本 ></label>' +
             '<label @click="selectTag">添加标签 ></label>' +
-            '<button type="submit">创建 ></button>' +
-        '</form>' +
+            '<button type="button" @click="submit">创建 ></button>' +
+        '</div>' +
     '</div>' +
     '<transition name="slide-into"><div class="select-container" v-if="isSelectBook">' +
-        '<form>' +
-            '<label @click="cancel">取消</label>' +
-        '</form>' +
+        '<div class="form">' +
+            '<label v-for="item in books"><input type="checkbox" :value="item" v-model="selectedBooks">{{item}}<span>·</span></label>' +
+            '<label @click="cancel">返回</label>' +
+        '</div>' +
     '</div></transition>' +
     '<transition name="slide-into"><div class="select-container" v-if="isSelectTag">' +
-        '<form>' +
-            '<label @click="cancel">取消</label>' +
-        '</form>' +
+        '<div class="form">' +
+            '<label>输入标签</label>' +
+            '<input id="tag-input" placeholder="Tag" @keyup.enter="addTag" style="margin-bottom: .3rem">' +
+            '<label v-for="item in createdTags" style="display: inline-block"><input type="checkbox" :value="item" v-model="createdTags"><div class="select-tag">· {{item}}</div></label>' +
+            '<label style="margin-top: .3rem">热门标签</label>' +
+            '<label v-for="item in tags" style="display: inline-block"><input type="checkbox" :value="item" v-model="selectedTags"><div class="select-tag">· {{item}}</div></label>' +
+            '<label @click="cancel" style="margin-top: .6rem">返回</label>' +
+        '</div>' +
     '</div></transition>' +
     '</div></transition>'
 }

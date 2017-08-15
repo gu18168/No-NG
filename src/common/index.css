@@ -3,6 +3,7 @@ html {
 }
 
 body {
+    overflow-x: hidden;
     background-color: #f7f7f7;
     width: 90%;
     margin-left: 10%;
@@ -33,6 +34,10 @@ body {
     border-bottom: 3px solid #464B4D;
 }
 
+#app {
+    transition: all .5s ease;
+}
+
 #recite {
     position: fixed;
     left: 0;
@@ -43,11 +48,7 @@ body {
 }
 
 #addCard {
-    position: fixed;
-    left: 0;
-    right: 0;
-    top: 2.3rem;
-    bottom: 0;
+    position: relative;
     background-color: #f7f7f7;
 }
 
