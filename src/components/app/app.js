@@ -174,6 +174,7 @@ var slide= {
                 },
                 transitionEnding: false
             },
+            bookName: "",
             currentWidth: 0,
             selectedIndex: 0,
             infoContent: false,
@@ -204,20 +205,33 @@ var slide= {
         }
     },
     created() {
-        // @todo 从数据库获取数据至pages
+        let title = document.getElementsByClassName("ng-title-word")[0].innerHTML
+
         let that = this;
         let xmlHttp = new XMLHttpRequest();
         let url = "http://101.200.60.114:8765/get";
+        url = this.addURLParam(url, "book", title);
         xmlHttp.onreadystatechange = function () {
             if (xmlHttp.readyState == 4) {
                 if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
-                    console.log(xmlHttp.responseText);
                     let temp = eval("(" + xmlHttp.responseText +")")
-                    console.log(temp.res);
-                    that.pages = temp.res;
-                    // console.log(that.pages)
+                    if (temp.res.length) {
+                        that.pages = temp.res;
+                    } else {
+                        that.pages = [
+                            {
+                                'en': "nothing",
+                                'zh': "没有单词卡"
+                            }
+                        ]
+                    }
                 } else {
-
+                    that.pages = [
+                        {
+                            'en': "error",
+                            'zh': "抱歉，服务器出了点小问题"
+                        }
+                    ]
                 }
             }
         }
@@ -229,6 +243,11 @@ var slide= {
         that.slide(0, 'animationnone');
     },
     methods: {
+        addURLParam(url, name, value) {
+          url += (url.indexOf("?") == -1 ? "?" : "&");
+          url += encodeURIComponent(name) + "=" + encodeURIComponent(value);
+          return url;
+        },
         swipeStart(e) {
             let that = this;
             that.hideAll();
