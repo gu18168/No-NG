@@ -18,8 +18,7 @@
     <ng-sub-header title="单词卡" more="true"></ng-sub-header>
     <item-card title="Design" type="word"></item-card>
     <ng-sub-header title="单词本"></ng-sub-header>
-    <item-card title="词根"></item-card>
-    <item-card title="托福"></item-card>
+    <item-card v-for="item in books" :title="item"></item-card>
 </div>
 <div id="main">
     <recite>
@@ -30,10 +29,12 @@
 </div>
 <div id="set">
     <add-card></add-card>
+    <add-book></add-book>
 </div>
 <div id="fab">
     <fab></fab>
 </div>
+
 
 <script src="src/components/app/app.js"></script>
 </body>

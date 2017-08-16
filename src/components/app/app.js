@@ -18,6 +18,7 @@ function addURLParam(url, name, value) {
 }());
 
 var bus = new Vue()
+var books = []
 
 var item = {
     props: {
@@ -30,7 +31,7 @@ var item = {
     },
     data() {
         return {
-            tip: "卡片量: "
+            tip: "卡片量: ",
         }
     },
     created() {
@@ -43,7 +44,6 @@ var item = {
                 if (xmlHttp.readyState == 4) {
                     if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
                         let temp = eval("(" + xmlHttp.responseText +")")
-                        console.log(temp.res);
                         that.tip += temp.res + "张";
                     } else {
                         that.tip += "未知错误";
@@ -96,6 +96,31 @@ var subHeader = {
 
 var App = new Vue({
     el: '#app',
+    data() {
+      return {
+          books: []
+      }
+    },
+    created() {
+        let that = this;
+        let xmlHttp = new XMLHttpRequest();
+        let url = "http://101.200.60.114:8765/getbook";
+        xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState == 4) {
+                if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
+                    let temp = eval("(" + xmlHttp.responseText +")")
+                    for(let i = 0; i < temp.res.length; i++) {
+                        that.books.push(temp.res[i].name);
+                        books.push(temp.res[i].name);
+                    }
+                } else {
+                    that.books = ["请刷新重试", "服务器出了点小问题"];
+                }
+            }
+        }
+        xmlHttp.open("GET", url, true);
+        xmlHttp.send(null);
+    },
     components: {
         'item-card': item,
         'ng-sub-header': subHeader
@@ -141,8 +166,13 @@ var fab = {
             bus.$emit('addToBack');
         },
         addBook() {
-            // @todo 跳转添加本页面
-            console.log('添加单词本')
+            document.getElementsByClassName("ng-title-word")[0].innerHTML = '添加单词本';
+            document.getElementById("app").style.opacity = "0";
+            setTimeout(function () {
+                document.getElementById("app").style.display = "none";
+                bus.$emit('addBook');
+            }, 300);
+            bus.$emit('addToBack');
         },
         prevTo() {
             document.getElementsByClassName("ng-title-word")[0].innerHTML = '不NG';
@@ -155,6 +185,7 @@ var fab = {
             bus.$emit('backToAdd');
             bus.$emit('noRecite');
             bus.$emit('noAddCard');
+            bus.$emit('noAddBook');
         }
     },
     template: '<div class="fab">' +
@@ -480,31 +511,31 @@ var addCard = {
             toAddCard: false,
             isSelectBook: false,
             isSelectTag: false,
-            books: ["词根", "托福"],
+            books: [],
             tags: ["词缀", "词缀啊"],
             selectedBooks: [],
             selectedTags: [],
             createdTags: [],
+            inputEN: "",
+            inputZH: ""
         }
     },
     mounted() {
         bus.$on('addCard', () => {
             this.toAddCard = true;
+            this.books = books;
         });
 
         bus.$on('noAddCard', ()=> {
             this.toAddCard = false;
-            // this.books = []; 清空等待下一次刷新
-            this.selectedBooks = [];
+            this.selectedBooks = this.selectedTags = this.createdTags = [];
+            this.inputEN = this.inputZH = "";
             this.isSelectBook = this.isSelectTag = false;
         })
     },
     methods: {
         selectBook() {
             this.isSelectBook = true;
-            if (this.books.length == 0) {
-                //@todo 请求已有的单词本数据
-            }
         },
         selectTag() {
             this.isSelectTag = true;
@@ -520,17 +551,48 @@ var addCard = {
             let tagName = document.getElementById("tag-input").value;
             document.getElementById("tag-input").value = "";
             this.createdTags.push(tagName);
-            console.log(tagName);
         },
         submit() {
-            //@todo 提交数据
+            if (this.inputEN.trim() == "") {
+                document.getElementById("word-en-input").focus();
+                return;
+            } else if (this.inputZH.trim() == "") {
+                document.getElementById("word-zh-input").focus();
+            } else {
+                //@todo 提交数据 没有
+                let xmlHttp = new XMLHttpRequest();
+                let url = "http://101.200.60.114:8765/add";
+                url = addURLParam(url, "en", this.inputEN);
+                url = addURLParam(url, "zh", this.inputZH);
+                url = addURLParam(url, "books", this.selectedBooks.join());
+                url = addURLParam(url, "tags", this.createdTags.concat(this.selectedTags).join())
+                xmlHttp.onreadystatechange = function () {
+                    if (xmlHttp.readyState == 4) {
+                        if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
+                            let temp = eval("(" + xmlHttp.responseText +")")
+                            if(temp.res == 1) {
+                                // 刷新返回，保证获得最新单词本
+                                location.reload();
+                            } else if (temp.error) {
+                                console.log(temp.error)
+                                //@todo 两个错误处理
+                            }
+                        } else {
+                            //@todo 添加失败处理
+                            console.log('服务器添加失败');
+                        }
+                    }
+                }
+                xmlHttp.open("GET", url, true);
+                xmlHttp.send(null);
+            }
         }
     },
     template: '<transition name="fade"><div id="addCard" v-if="toAddCard">' +
     '<div class="addCard-container" :class="{hide: isSelectBook || isSelectTag}">' +
         '<div class="form">' +
-            '<input placeholder="English">' +
-            '<input placeholder="Chinese">' +
+            '<input id="word-en-input" placeholder="English" v-model="inputEN">' +
+            '<input id="word-zh-input" placeholder="Chinese" v-model="inputZH">' +
             '<label @click="selectBook">选择收纳的单词本 ></label>' +
             '<label @click="selectTag">添加标签 ></label>' +
             '<button type="button" @click="submit">创建 ></button>' +
@@ -538,6 +600,7 @@ var addCard = {
     '</div>' +
     '<transition name="slide-into"><div class="select-container" v-if="isSelectBook">' +
         '<div class="form">' +
+            '<label v-if="books.length == 0">! 暂无单词本</label>' +
             '<label v-for="item in books"><input type="checkbox" :value="item" v-model="selectedBooks">{{item}}<span>·</span></label>' +
             '<label @click="cancel">返回</label>' +
         '</div>' +
@@ -555,7 +618,59 @@ var addCard = {
     '</div></transition>'
 }
 
-var addBook = {}
+var addBook = {
+    data() {
+        return {
+            toAddBook: false,
+            title: ""
+        }
+    },
+    mounted() {
+        bus.$on('addBook', () => {
+            this.toAddBook = true;
+        });
+
+        bus.$on('noAddBook', ()=> {
+            this.toAddBook = false;
+        })
+    },
+    methods: {
+        submit() {
+            if (this.title.trim() == "") {
+                document.getElementById("book-name-input").focus();
+                return;
+            }
+            let that = this;
+            let xmlHttp = new XMLHttpRequest();
+            let url = "http://101.200.60.114:8765/addbook";
+            url = addURLParam(url, "name", this.title);
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4) {
+                    if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
+                        let temp = eval("(" + xmlHttp.responseText +")")
+                        if(temp.res == 1) {
+                            // 刷新返回，保证获得最新单词本
+                            location.reload();
+                        }
+                    } else {
+                        //@todo 添加失败处理
+                        console.log('服务器添加失败');
+                    }
+                }
+            }
+            xmlHttp.open("GET", url, true);
+            xmlHttp.send(null);
+        }
+    },
+    template: '<transition name="fade"><div id="addBook" v-if="toAddBook">' +
+    '<div class="addCard-container">' +
+    '<div class="form">' +
+    '<input id="book-name-input" v-model="title" placeholder="Book Name">' +
+    '<button type="button" @click="submit">创建 ></button>' +
+    '</div>' +
+    '</div>' +
+    '</div></transition>'
+}
 
 var Set = new Vue({
     el: '#set',
