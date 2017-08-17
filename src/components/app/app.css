@@ -305,6 +305,41 @@
     background-color: #00dfb9;
 }
 
+.err-toast {
+    width: 3.8rem;
+    height: 3.8rem;
+    margin: auto;
+    background-color: rgba(0, 0, 0, .6);
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.err-toast .err-sign {
+    color: #fff;
+    background-color: rgba(255, 255, 255, .36);
+    width: 1.2rem;
+    height: 1.2rem;
+    text-align: center;
+    line-height: 1.2rem;
+    border-radius: 50%;
+}
+
+.err-toast .err-msg {
+    font-size: .5rem;
+    margin-top: .3rem;
+    color: #fff;
+    font-weight: 700;
+    letter-spacing: .5px;
+}
+
 .slide-into-enter-active, .slide-into-leave-active {
     transition: all .8s ease-in-out;
 }

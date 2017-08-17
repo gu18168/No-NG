@@ -540,7 +540,9 @@ var addCard = {
             selectedTags: [],
             createdTags: [],
             inputEN: "",
-            inputZH: ""
+            inputZH: "",
+            haveError: false,
+            errMsg: "请选择单词本"
         }
     },
     mounted() {
@@ -575,6 +577,14 @@ var addCard = {
             document.getElementById("tag-input").value = "";
             this.createdTags.push(tagName);
         },
+        showError(msg) {
+            let that = this;
+            this.haveError = true;
+            this.errMsg = msg;
+            setTimeout(function () {
+                that.haveError = false;
+            }, 1600);
+        },
         submit() {
             if (this.inputEN.trim() == "") {
                 document.getElementById("word-en-input").focus();
@@ -582,7 +592,7 @@ var addCard = {
             } else if (this.inputZH.trim() == "") {
                 document.getElementById("word-zh-input").focus();
             } else {
-                //@todo 提交数据 没有
+                let that = this;
                 let xmlHttp = new XMLHttpRequest();
                 let url = "http://101.200.60.114:8765/add";
                 url = addURLParam(url, "en", this.inputEN);
@@ -597,8 +607,18 @@ var addCard = {
                                 // 刷新返回，保证获得最新单词本
                                 location.reload();
                             } else if (temp.error) {
-                                console.log(temp.error)
-                                //@todo 两个错误处理
+                                let messages = temp.message.split(" - ");
+                                switch (messages[1]) {
+                                    case 'books':
+                                        that.showError("请选择单词本");
+                                        break;
+                                    case 'tags':
+                                        that.showError("请选择标签");
+                                        break;
+                                    default:
+                                        that.showError("未知错误");
+                                        break;
+                                }
                             }
                         } else {
                             //@todo 添加失败处理
@@ -637,6 +657,10 @@ var addCard = {
             '<label v-for="item in tags" style="display: inline-block"><input type="checkbox" :value="item" v-model="selectedTags"><div class="select-tag">· {{item}}</div></label>' +
             '<label @click="cancel" style="margin-top: .6rem">返回</label>' +
         '</div>' +
+    '</div></transition>' +
+    '<transition name="fade"><div class="err-toast" v-if="haveError">' +
+        '<div class="err-sign">X</div>' +
+        '<div class="err-msg">{{errMsg}}</div>' +
     '</div></transition>' +
     '</div></transition>'
 }
