@@ -31,6 +31,7 @@ var item = {
     },
     data() {
         return {
+            myTitle: this.title,
             tip: "卡片量: ",
         }
     },
@@ -54,19 +55,40 @@ var item = {
             xmlHttp.send(null);
         } else {
             this.tip = "创建时间: 2017/8/15"
+            let that = this;
+            let xmlHttp = new XMLHttpRequest();
+            let url = "http://101.200.60.114:8765/random";
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4) {
+                    if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
+                        let temp = eval("(" + xmlHttp.responseText +")")
+                        that.myTitle = temp.res.en;
+                        that.tip = "没认识还不在努力一把";
+                    } else {
+                        that.myTitle = "错误"
+                        that.tip = "未知错误";
+                    }
+                }
+            }
+            xmlHttp.open("GET", url, true);
+            xmlHttp.send(null);
         }
     },
     methods: {
         start() {
             // @todo 相应页面覆盖
-            document.getElementsByClassName("ng-title-word")[0].innerHTML = this.title;
+            if (this.type == "card") {
+                document.getElementsByClassName("ng-title-word")[0].innerHTML = this.title;
+            } else {
+                document.getElementsByClassName("ng-title-word")[0].innerHTML = "所有单词";
+            }
             bus.$emit('recite');
             bus.$emit('addToBack');
         }
     },
     template: '<div class="item-card">' +
     '<div class="item-card-left">' +
-    '<div class="item-card-title">{{title}}</div>' +
+    '<div class="item-card-title">{{myTitle}}</div>' +
     '<div class="item-card-tip">{{tip}}</div>' +
     '</div>' +
     '<div class="item-card-right" @click="start">背</div>' +
@@ -140,6 +162,7 @@ var fab = {
         bus.$on('addToBack', () => {
             this.add = false;
             this.re = true;
+            this.isShadow = this.isActive = false;
         });
 
         bus.$on('backToAdd', () => {
@@ -284,8 +307,13 @@ var slide= {
 
         let that = this;
         let xmlHttp = new XMLHttpRequest();
-        let url = "http://101.200.60.114:8765/get";
-        url = addURLParam(url, "book", title);
+        let url;
+        if (title == "所有单词") {
+            url = "http://101.200.60.114:8765/getall";
+        } else {
+            url = "http://101.200.60.114:8765/get";
+            url = addURLParam(url, "book", title);
+        }
         xmlHttp.onreadystatechange = function () {
             if (xmlHttp.readyState == 4) {
                 if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
@@ -482,12 +510,7 @@ var slide= {
             '<div class="line d-line"></div>' +
             '<div class="card-tags">' +
             '<ul>' +
-            '<li class="card-tag tag-blue">词缀</li>' +
-            '<li class="card-tag">词缀</li>' +
-            '<li class="card-tag tag-red">词缀</li>' +
-            '<li class="card-tag tag-green">词缀</li>' +
-            '<li class="card-tag tag-yellow">词缀</li>' +
-            '<li class="card-tag tag-black">词缀啊</li>' +
+            '<li class="card-tag" v-for="tag in item.tags">{{tag}}</li>' +
             '</ul>' +
             '</div>' +
             '</div>' +
