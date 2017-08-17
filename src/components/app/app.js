@@ -54,7 +54,7 @@ var item = {
             xmlHttp.open("GET", url, true);
             xmlHttp.send(null);
         } else {
-            this.tip = "创建时间: 2017/8/15"
+            this.tip = "加紧学习吧！"
             let that = this;
             let xmlHttp = new XMLHttpRequest();
             let url = "http://101.200.60.114:8765/random";
@@ -287,7 +287,8 @@ var slide= {
                 let style = {};
                 style['width'] = (index+1) * 100 / this.pages.length + '%';
                 return style;
-            }
+            },
+            confirm: false
         }
     },
     computed: {
@@ -479,6 +480,49 @@ var slide= {
             } else {
                 card.className += " back";
             }
+        },
+        deleteCard(item) {
+            this.hideMore();
+            if(item.en == "nothing") {
+                return;
+            }
+            this.confirm = true;
+        },
+        confirmDelete(item) {
+            let that = this;
+            let xmlHttp = new XMLHttpRequest();
+            let url = "http://101.200.60.114:8765/remove";
+            url = addURLParam(url, "en", item.en);
+            url = addURLParam(url, "zh", item.zh);
+            url = addURLParam(url, "books", item.books.join());
+            url = addURLParam(url, "tags", item.tags.join())
+            xmlHttp.onreadystatechange = function () {
+                if (xmlHttp.readyState == 4) {
+                    if ((xmlHttp.status == 200) || xmlHttp.status == 304) {
+                        let temp = eval("(" + xmlHttp.responseText + ")")
+                        if (temp.res == 1) {
+                            that.hideMore();
+                            console.log("删除成功")
+                            //@todo 删除成功提示
+                        } else if (temp.error) {
+                            //@todo 删除失败提示
+                        }
+                    } else {
+                        //@todo 添加失败处理
+                        console.log('服务器删除失败');
+                    }
+                }
+            }
+            xmlHttp.open("GET", url, true);
+            xmlHttp.send(null);
+        },
+        cancelDelete() {
+            this.confirm = false;
+        },
+        editCard() {
+            //@todo 编辑
+            console.log("编辑");
+            this.hideMore();
         }
     },
     template: '<div class="slider-container" :class="basicdata.containerClass">' +
@@ -501,18 +545,26 @@ var slide= {
             '<p class="icon-swap_vert"> 点击翻转</p>' +
             '<p class="icon-swap_horiz"> 左右滑动</p>' +
             '</div></transition>' +
-            '<transition name="slide-left"><div class="card-more-content btn-content" v-if="moreContent" @click="hideMore">' +
-            '<p class="icon-quill"> 编辑</p>' +
-            '<p class="icon-bin2"> 删除</p>' +
+            '<transition name="slide-left"><div class="card-more-content btn-content" v-if="moreContent">' +
+            '<p class="icon-quill" @click="editCard"> 编辑</p>' +
+            '<p class="icon-bin2" @click="deleteCard(item)"> 删除</p>' +
             '</div></transition>' +
             '</div>' +
             '<div class="line c-line"></div>' +
             '<div class="line d-line"></div>' +
             '<div class="card-tags">' +
-            '<ul>' +
-            '<li class="card-tag" v-for="tag in item.tags">{{tag}}</li>' +
-            '</ul>' +
+                '<ul>' +
+                    '<li class="card-tag" v-for="tag in item.tags">{{tag}}</li>' +
+                '</ul>' +
             '</div>' +
+            '<transition name="fade"><div class="delete-model" v-if="confirm">' +
+                '<div class="model-header">提示</div>' +
+                '<div class="model-content">你确认要删除吗？</div>' +
+                '<div class="model-btn">' +
+                    '<div class="model-btn-cancel" @click="cancelDelete">取消</div>' +
+                    '<div class="model-btn-ok" @click="confirmDelete(item)">确认</div>' +
+                '</div>' +
+            '</div></transition>' +
             '</div>' +
         '</div>' +
         '<div class="card-another">再来一打<</div>' +

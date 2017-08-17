@@ -29,7 +29,7 @@
     flex-direction: column;
     background-color: #fff;
     border-radius: 6px;
-    box-shadow: 0px 10px 10px 0px rgba(7, 17, 27, 0.1);
+    border: 1px solid #eee;
 }
 
 .card-main .card-header {
@@ -149,6 +149,7 @@
 .card-wrapper .c-line {
     width: 92%;
     margin: 2px auto;
+    box-shadow: 0px 4px 8px 0px rgba(7, 17, 27, 0.1),0px -6px 8px 0px rgba(7, 17, 27, .3);
 }
 
 .card-wrapper .d-line {
@@ -201,4 +202,62 @@
     color: #444;
     display: flex;
     align-items: center;
+}
+
+.delete-model {
+    height: 4rem;
+    width: 6rem;
+    background-color: #fff;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 46%;
+    margin: auto;
+    box-shadow: 0px 4px 8px 0px rgba(7, 17, 27, 0.1);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.delete-model .model-header {
+    height: 1rem;
+    width: 100%;
+    background-color: #f01404;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    color: #fff;
+    font-size: .56666667rem;
+    font-weight: 700;
+    text-align: left;
+    line-height: 1rem;
+    padding-left: .5rem;
+    box-sizing: border-box;
+}
+
+.delete-model .model-content {
+    font-size: .53333333rem;
+    padding: .5rem;
+    text-align: left;
+}
+
+.delete-model .model-btn {
+    font-size: .5rem;
+    font-weight: 700;
+    text-align: right;
+    padding: 0 .5rem .4rem 0;
+}
+
+.model-btn * {
+    cursor: pointer;
+    display: inline-block;
+}
+
+.model-btn .model-btn-ok {
+    margin-left: .6rem;
+    color: #f01404;
+}
+
+.model-btn .model-btn-cancel {
 }
