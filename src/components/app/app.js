@@ -627,7 +627,9 @@ var addCard = {
         addTag() {
             let tagName = document.getElementById("tag-input").value;
             document.getElementById("tag-input").value = "";
-            this.createdTags.push(tagName);
+            if (this.createdTags.indexOf(tagName) == -1) {
+                this.createdTags.push(tagName);
+            }
         },
         showError(msg) {
             let that = this;
@@ -640,9 +642,10 @@ var addCard = {
         submit() {
             if (this.inputEN.trim() == "") {
                 document.getElementById("word-en-input").focus();
-                return;
             } else if (this.inputZH.trim() == "") {
                 document.getElementById("word-zh-input").focus();
+            } else if (this.createdTags.concat(this.selectedTags).length > 8) {
+                this.showError("标签多于八个");
             } else {
                 let that = this;
                 let xmlHttp = new XMLHttpRequest();
